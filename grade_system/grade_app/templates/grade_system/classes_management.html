@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %} {% block content %}
+
+<div class="content-section">
+    <form method="POST">
+        {% csrf_token %}
+        <h1>Classes management</h1>
+        <h3>Current subjecrs</h3>
+            {% for class in classes_management %}
+                <h5>{{ class.class_name}}</h5>
+            {% endfor %}
+
+        <h3>Actions</h3>
+        <div><a href="{% url 'classes_add' %}">Add new Class</a></div>
+        <div><a href="{% url 'classes_remove' %}">Remove Class</a></div>
+    </form>
+</div>
+
+{% endblock %}

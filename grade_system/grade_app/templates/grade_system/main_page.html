@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% block content %}
+{% csrf_token %}
+    
+    <h1>Hello world</h1>
+
+    <h4> Registered Usesrs </h4>
+        
+        {% for user in main_page %}
+            <h5>{{ user.name }}</h5>
+        {% endfor %}
+       
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+ {% block content %}
+
+<div class="content-section">
+    <H1>HR Workplace</H1>
+    <h2>Options</h2>
+
+    <div><a href="{% url 'personal_and_student' %}">Manage Students and Personal</a></div>
+    <div><a href="{% url 'subject_management' %}">School subject management</a></div>
+    <div><a href="{% url 'classes_management' %}">Class management</a></div>
+    
+</div>
+{% endblock %}

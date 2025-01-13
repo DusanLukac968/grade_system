@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block content %}
+
+<div class="content-section">
+   <h1>{{ user.name }} {{user.surname}}</h1>
+   <h2>{{ user.email}}</h2>
+   <form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    <fieldset class="form-group">
+      <legend class="border-bottom mb-4">Profile Info</legend>
+    <div class="form-group">
+
+      <p>
+        <div>User level:&emsp; {{ user.user_level}}</div>
+        <div>Name:&emsp; {{ user.name}}</div> 
+        <div>Surname:&emsp; {{user.surname}} </div>
+        <div>Email:&emsp; {{user.email}}</div>
+        <div>Age:&emsp; {{user.age}} </div>
+        <div>Telephone number:&emsp; {{ user.tel_number}} </div>
+      </p>
+      <p>
+ 
+      </p>
+  </form>
+</div>
+
+{% endblock %}
