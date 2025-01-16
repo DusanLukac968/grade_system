@@ -23,6 +23,18 @@ def user_name_opions():
         choices.append((user.user_id, user.get_full_name))
     return choices
 
+def teacher_name_opions():
+    choices = []
+    for user in User.objects.all():
+        if user.user_level == 2:
+            choices.append((user.user_id, user.get_full_name))
+    return choices
+
+def student_name_opions():
+    choices = []
+    for user in User.objects.all():
+        if user.user_level == 3:
+            choices.append((user.user_id, user.get_full_name))
 class UserRegistrationForm(UserCreationForm):
 
     limited_choice = [User.USER_LEVEL_CHOICES[0]]
@@ -105,7 +117,7 @@ class UserUpdateForm(forms.ModelForm):
         fields = ["email", "name", "surname", "date_of_birth", "tel"]
 
 class TeacherAdvanceRegister(forms.ModelForm):
-    user = forms.ChoiceField(choices=user_name_opions)
+    user = forms.ChoiceField(choices=teacher_name_opions)
     subjects = forms.MultipleChoiceField(choices= subject_name_choices, widget= forms.CheckboxSelectMultiple, label='Taught Subjects')
     classes = forms.MultipleChoiceField(choices= class_choices, widget= forms.CheckboxSelectMultiple, label='Teaching in')
 
@@ -114,9 +126,9 @@ class TeacherAdvanceRegister(forms.ModelForm):
         fields = ["user", "subjects", "classes"]
 
 class StudentAdvanceRegister(forms.ModelForm):
-    user = forms.ChoiceField(choices=user_name_opions)
+    user = forms.ChoiceField(choices=student_name_opions)
     subjects = forms.MultipleChoiceField(choices= subject_name_choices, widget= forms.CheckboxSelectMultiple)
-    classes = forms.MultipleChoiceField(choices= class_choices, widget= forms.CheckboxSelectMultiple)
+    classes = forms.ChoiceField(choices= class_choices, widget= forms.CheckboxSelectMultiple)
 
     class Meta:
         model = Teacher

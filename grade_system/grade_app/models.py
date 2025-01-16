@@ -117,8 +117,8 @@ class Teacher(models.Model):
 class Student(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     student_id = models.UUIDField(primary_key=True, unique=True, default=uuid.uuid4, editable=False)
-    subjects = models.CharField(max_length=300)
-    current_class = models.CharField(max_length=300)
+    subjects = models.ManyToManyField(Subjects,default="", verbose_name="Subjecs ")
+    current_class = models.ManyToManyField(Classes, default="", verbose_name="Classes")
     activities = models.CharField(max_length=300)
     parent_1 = models.CharField(max_length=300)
     parent_2 = models.CharField(max_length=300)
