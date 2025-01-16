@@ -22,5 +22,5 @@ urlpatterns = [
     path('user_update/',views.user_update, name= "user_update"),
     path('hr_teacher_advance_register/',views.hr_teacher_advance_register, name= "hr_teacher_advance_register"),
     path('teacher_advance_register/',views.teacher_advance_register, name= "teacher_advance_register"),
-    path('test/', views.TeacherAdvanceRegisterI.as_view(), name="test")
+    
 ]

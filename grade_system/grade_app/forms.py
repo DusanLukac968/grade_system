@@ -20,7 +20,7 @@ def subject_name_choices():
 def user_name_opions():
     choices = []
     for user in User.objects.all():
-        choices.append((user.user_id, user.name))
+        choices.append((user.user_id, user.get_full_name))
     return choices
 
 class UserRegistrationForm(UserCreationForm):
@@ -105,15 +105,23 @@ class UserUpdateForm(forms.ModelForm):
         fields = ["email", "name", "surname", "date_of_birth", "tel"]
 
 class TeacherAdvanceRegister(forms.ModelForm):
+    user = forms.ChoiceField(choices=user_name_opions)
+    subjects = forms.MultipleChoiceField(choices= subject_name_choices, widget= forms.CheckboxSelectMultiple, label='Taught Subjects')
+    classes = forms.MultipleChoiceField(choices= class_choices, widget= forms.CheckboxSelectMultiple, label='Teaching in')
 
+    class Meta:
+        model = Teacher
+        fields = ["user", "subjects", "classes"]
 
+class StudentAdvanceRegister(forms.ModelForm):
+    user = forms.ChoiceField(choices=user_name_opions)
     subjects = forms.MultipleChoiceField(choices= subject_name_choices, widget= forms.CheckboxSelectMultiple)
     classes = forms.MultipleChoiceField(choices= class_choices, widget= forms.CheckboxSelectMultiple)
 
     class Meta:
         model = Teacher
         fields = ["user", "subjects", "classes"]
-    
 
+    
 """subjects = forms.MultipleChoiceField(choices=subject_choices(), widget=forms.CheckboxSelectMultiple)
     classes = forms.MultipleChoiceField(choices=class_choices(), widget=forms.CheckboxSelectMultiple)"""

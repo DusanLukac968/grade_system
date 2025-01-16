@@ -91,6 +91,7 @@ def teacher_register(request):
             name = form.cleaned_data.get('name')
             surname = form.cleaned_data.get('surname')
             messages.success(request, f"Account for teacher {name} {surname}")
+            return redirect('teacher_advance_register')
     else:
         form = TeacherRegistrationForm()
     return render(request, 'grade_system/teacher_register_page.html', { 'form': form})
@@ -218,34 +219,15 @@ def hr_teacher_advance_register(request):
         form = TeacherAdvanceRegister()
     return render(request, 'grade_system/hr_workplace.html', { 'form': form}) 
 
-class TeacherAdvanceRegisterI(generic.CreateView):
-
-    model= Teacher
-    template_name = "grade_system/test.html"
-    form_class = TeacherAdvanceRegister
-    
-
-    def get_context_data(self, **kwargs):
-        kwargs['user_type'] = 'student'
-        return super().get_context_data(**kwargs)
-
-    def form_valid(self, form):
-        user = form.save()
-        login(self.request, user)
-        return redirect('hr_workplace')
-
-
 @login_required
 def teacher_advance_register(request):
 
     if request.method == 'POST':
         form = TeacherAdvanceRegister(request.POST)
-        user = request.user
         try:
             if form.is_valid():
                 form.save()
                 messages.success(request, f"Account was created.")
-                messages.error(request,'Nejde')
                 return redirect('main_page')
             
         except:

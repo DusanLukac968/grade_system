@@ -76,7 +76,7 @@ class User(AbstractBaseUser):
     USERNAME_FIELD = "email"
 
     def get_full_name(self):
-        return self.name and self.surname
+        return f"{self.name}  {self.surname}"
 
     def get_short_name(self):
         return self.name and self.surname or self.email.split('@')[0]
@@ -100,18 +100,18 @@ class Teacher(models.Model):
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     teacher_id = models.UUIDField(primary_key= True,unique=True, default=uuid.uuid4, editable=False)
-    subjects = models.ManyToManyField(Subjects,default="", verbose_name="Subjecs")
+    subjects = models.ManyToManyField(Subjects,default="", verbose_name="Subjecs ")
     classes = models.ManyToManyField(Classes, default="", verbose_name="Classes")
+    
 
     def __str__(self):
-        return "User {0},\n teacher_id: {1}\n subjects: {2}\n classes".format(self.user, self.teacher_id, self.subjects, self.classes)
+        return "User {0},\n teacher_id: {1}\n subjects: {2}\n Teacher class: {3}".format(self.user, self.teacher_id, self.subjects, self.classes)
 
     class Meta:
         verbose_name = "teacher"
         verbose_name_plural = "teachers"
 
-    def get_absolute_url(self):
-        return reverse('user_register')
+    
 
 
 class Student(models.Model):
