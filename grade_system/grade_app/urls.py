@@ -17,10 +17,12 @@ urlpatterns = [
     path('classes_management/', views.ClassesManagement.as_view(), name="classes_management"),
     path('classes_add/', views.classes_add, name="classes_add"),
     path('classes_remove/', views.classes_remove, name="classes_remove"),
+    path('classes_update/',views.classes_update, name= "classes_update"),
     path('personal_and_student/', views.PersonalStudentsManagement.as_view(), name= "personal_and_student"),
     path('user_profile/', views.user_profile, name="user_profile"),
     path('user_update/',views.user_update, name= "user_update"),
-    path('hr_teacher_advance_register/',views.hr_teacher_advance_register, name= "hr_teacher_advance_register"),
+    path('hr_user_update/',views.hr_user_update, name= "hr_user_update"),
+    path('subject_update/',views.subject_update, name= "subject_update"),
     path('teacher_advance_register/',views.teacher_advance_register, name= "teacher_advance_register"),
-    
+    path('student_advance_register/',views.student_advance_register, name= "student_advance_register"),
 ]

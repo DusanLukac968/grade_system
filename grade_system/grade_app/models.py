@@ -7,6 +7,11 @@ from django.urls import reverse
 
 
 class Subjects(models.Model):
+
+    """
+    Subjects - model for simple school subject created with name and its shotr form for school schedule
+    in pusrpose many to many relathionship
+    """
     subject_name = models.CharField(max_length=300, unique=True)
     subject_short = models.CharField(max_length=300, unique=True)
     
@@ -19,6 +24,9 @@ class Subjects(models.Model):
         return self.subject_short
 
 class Classes(models.Model):
+    """
+    Classes represents regular school class named only but its name in pusrpose many to many relathionship
+    """
     class_name = models.CharField(max_length=300, unique=True)
 
     class Meta:
@@ -29,6 +37,9 @@ class Classes(models.Model):
         return self.class_name
 
 class UserManager(BaseUserManager):
+    """
+    blueprint for user and admin creation
+    """
     def create_user(self, email, password):
         print(self)
         if email and password:
@@ -45,6 +56,11 @@ class UserManager(BaseUserManager):
     
 
 class User(AbstractBaseUser):
+    """
+    model for User with several roles what user can be 
+    primary key becomes UUIDField with uniq applied
+    + other data to better specify user
+    """
     ADMIN = 0
     PRINCIPAL = 1
     TEACHER = 2
@@ -98,14 +114,22 @@ class User(AbstractBaseUser):
 
 class Teacher(models.Model):
 
+    """
+    Teacher is model for all users who got this role 
+    user is assigned as one to one field get additional informations as 
+    main class = he is head teacher/main teacher for this class
+    subjects = subjects he can teach, classes- where he teach 
+    teacher_id = unique id for teacher for better manipulation
+    """
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     teacher_id = models.UUIDField(primary_key= True,unique=True, default=uuid.uuid4, editable=False)
     subjects = models.ManyToManyField(Subjects,default="", verbose_name="Subjecs ")
+    main_class = models.CharField(max_length=300, null=True)
     classes = models.ManyToManyField(Classes, default="", verbose_name="Classes")
     
 
     def __str__(self):
-        return "User {0},\n teacher_id: {1}\n subjects: {2}\n Teacher class: {3}".format(self.user, self.teacher_id, self.subjects, self.classes)
+        return "User {0},\n teacher_id: {1}\n subjects: {2}\n Main_class: {3}".format(self.user, self.teacher_id, self.subjects, self.main_class)
 
     class Meta:
         verbose_name = "teacher"
@@ -115,6 +139,11 @@ class Teacher(models.Model):
 
 
 class Student(models.Model):
+    """
+    Student - is model for all users who got this role
+    user is assigned as one to one field get additional informations as 
+    subject student attend, his current class, after school activities and parents
+    """
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     student_id = models.UUIDField(primary_key=True, unique=True, default=uuid.uuid4, editable=False)
     subjects = models.ManyToManyField(Subjects,default="", verbose_name="Subjecs ")
@@ -129,9 +158,14 @@ class Student(models.Model):
 
 
     def __str__(self):
-        return "class: {0},\n user: {1}, student_id:{3}".format(self.current_class, self.user, self.student_id)
+        return "user: {0}, student_id:{1}".format(self.user, self.student_id)
 
 class Parent(models.Model):
+
+    """
+    user model made for user with role parent 
+    parent will be connected to child ( not finished yet)
+    """
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     child = models.CharField(max_length=300)
 
