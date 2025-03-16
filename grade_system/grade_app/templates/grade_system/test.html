@@ -1,19 +1,30 @@
-{% extends 'base.html' %}
-{% load crispy_forms_tags %} {% block content %}
-
-<div class="content-section">
-    <form method="POST">
-        {% csrf_token %}
-        <fieldset class="form_groupe">
-
-            <legend class="borde-botom mb-4">TEst</legend>
-            {{ form|crispy }}
-        </fieldset>
-        <div class="form_groupe">
-            <button class="btn btn-outline-info" type="submit">TEST</button>
-        </div>
-    </form>
-    <div><a href="{% url 'hr_workplace' %}">Back to the HR workplace</a></div>
-</div>
-
-{% endblock %}
+@login_required
+def hr_user_update(request):
+    """
+    view for HR/admin in which  can be updated all data for selected user
+    """
+    if request.method == 'POST':
+        update_this_user = User.objects.get(pk= int(get_user))
+        get_user= request.POST.get('update_data_for_user')
+        get_new_user_level = request.POST.get('user_level')
+        get_new_user_name = request.POST.get('name')
+        get_new_user_surname = request.POST.get('surname')
+        get_new_user_tel = request.POST.get('tel')
+        get_new_user_birth = request.POST.get('name')
+        form = HRUserUpdateForm(request.POST, instance=update_this_user)
+        if form.is_valid():
+            update_this_user.user_level= get_new_user_level
+            update_this_user.name= get_new_user_name
+            update_this_user.surname= get_new_user_surname
+            update_this_user.tel= get_new_user_tel
+            update_this_user.date_of_birth= get_new_user_birth
+            update_this_user.save()
+            form.save()
+            messages.success(request,'Your profile has been updated!')
+            return redirect('user_profile')
+        """ add some errors"""
+    user = get_user_model()
+    if user:
+        form = HRUserUpdateForm(request.POST)
+        return render(request, 'grade_system/hr_user_update.html', {'form': form})
+    return redirect("hr_workplace")  

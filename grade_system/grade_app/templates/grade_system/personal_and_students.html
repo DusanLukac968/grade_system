@@ -5,9 +5,12 @@
     <form method="POST">
         {% csrf_token %}
         <h1>Personal and Students management</h1>
-        <div><a href="{% url 'teacher_register_page' %}">Add new teacher</a></div>
-        <div><a href="{% url  'student_register_page' %}">Add new student</a></div>
-        <div><a href="{% url 'hr_register' %}">Add new Hr colleague</a></div>
+        <div><a href="{% url 'hr_register' %}">Create new user</div>
+        <div><a href="{% url 'hr_user_update' %}">Change/update user</div>
+        <div><a href="{% url 'teacher_advance_register' %}">Create teacher profile for existing user</a></div>
+        <div><a href="{% url 'student_advance_register' %}">Create student profile for existing user</a></div>
+        <div><a href="{% url 'parent_advance_register' %}">Create parent profile for existing user</a></div>
+
         
     </form>
     <div><a href="{% url 'hr_workplace' %}">Back to the HR workplace</a></div>

@@ -12,11 +12,15 @@
     <div class="form-group">
 
       <p>
+        <div>Status:&emsp; {{ user.get_user_level_name}}</div>
         <div>Name:&emsp; {{ user.name}}</div> 
         <div>Surname:&emsp; {{user.surname}} </div>
         <div>Email:&emsp; {{user.email}}</div>
         <div>Date of birth:&emsp; {{user.date_of_birth}} </div>
         <div>Telephone number:&emsp; {{ user.tel}} </div>
+ 
+        
+        
       </p>
   </form>
   <div><a href="{% url 'user_update' %}">Actualize your data</a></div>

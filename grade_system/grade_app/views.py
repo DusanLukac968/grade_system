@@ -5,8 +5,8 @@ from django.views import generic
 from django.contrib.auth import login, logout, authenticate, get_user_model
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .models import User, Student, Teacher, Subjects, Classes
-from .forms import LoginForm, UserRegistrationForm, TeacherRegistrationForm, StudentRegistrationForm, SubjectAdd, ClassesAdd, SubjectRemove,ClassesRemove, UserUpdateForm, TeacherAdvanceRegister, StudentAdvanceRegister, SubjectUpdateForm, ClassUpdateForm, HRUserUpdateForm
+from .models import User, Student, Teacher, Subjects, Classes, Parent
+from .forms import LoginForm, UserRegistrationForm, SubjectAdd, ClassesAdd, SubjectRemove,ClassesRemove, UserUpdateForm, TeacherAdvanceRegister, StudentAdvanceRegister, SubjectUpdateForm, ClassUpdateForm, HRUserUpdateForm, ParentAdvanceRegister, UserRemove
 
 class MainPage(generic.ListView):
     """
@@ -85,7 +85,7 @@ class PersonalStudentsManagement(generic.TemplateView):
     content_object_name = "personal_and_student"
 
 
-def hr_register(request):
+def user_register(request):
     """
     user registration view for user registration using UserRegistrationForm
     creating new user 
@@ -95,47 +95,23 @@ def hr_register(request):
         if form.is_valid():
             form.save()
             email = form.cleaned_data.get('email')
-            messages.success(request, f"Account for HR {email} was created.")
-            return redirect('main_page')
+            user_level = form.cleaned_data.get('user_level')
+            if int(user_level) == 2:
+                messages.success(request, f"Account for Teacher {email} was created.")
+                return redirect('teacher_advance_register')
+            elif int(user_level) == 3:
+                messages.success(request, f"Account for student {email} was created.")
+                return redirect('student_advance_register')
+            elif int(user_level) == 4:
+                messages.success(request, f"Account for parent {email} was created.")
+                return redirect('parent_advance_register')
+            elif int(user_level) == 0:
+                messages.success(request, f"Account for new colleague {email} was created.")
+                return redirect('hr_workplace')           
     else:
         form = UserRegistrationForm()
     return render(request, 'grade_system/user_register.html', { 'form': form}) 
 
-def teacher_register(request):
-    """
-    user registration view for user registration using TeacherRegistrationForm
-    creating new user with fixed role teacher after creatin user, Hr is redirected to teacher_advance_register
-    when full registration of teacher can be finished
-    """  
-    if request.method == 'POST':
-        form = TeacherRegistrationForm(request.POST)
-        if form.is_valid():
-            form.save()
-            name = form.cleaned_data.get('name')
-            surname = form.cleaned_data.get('surname')
-            messages.success(request, f"Account for teacher {name} {surname}")
-            return redirect('teacher_advance_register')
-    else:
-        form = TeacherRegistrationForm()
-    return render(request, 'grade_system/teacher_register_page.html', { 'form': form})
-
-def student_register(request):
-    """
-    user registration view for user registration using StudentRegistrationForm
-    creating new user with fixed role teacher after creatin user, Hr is redirected to student_advance_register
-    when full registration of student can be finished
-    """    
-    if request.method == 'POST':
-        form = StudentRegistrationForm(request.POST)
-        if form.is_valid():
-            form.save()
-            name = form.cleaned_data.get('name')
-            surname = form.cleaned_data.get('surname')
-            messages.success(request, f"Account for Student {name} {surname}")
-            return redirect('student_advance_register')
-    else:
-        form = StudentRegistrationForm()
-    return render(request, 'grade_system/student_register_page.html', { 'form': form})
 
 
 def subject_add(request):
@@ -209,6 +185,32 @@ def classes_remove(request):
         form = ClassesRemove()
     return render(request, 'grade_system/classes_remove.html', {'form': form})
 
+def user_remove(request):
+    """view for deleting users"""
+    if request.method == 'POST':
+        form = UserRemove(request.POST)
+        get_user = request.POST.get('user')
+        remove_this_user = User.objects.get(pk = get_user)
+        try:
+            if form.is_valid():
+                if int(remove_this_user.user_level) == 2:
+                    user_teacher_to_delete = Teacher.objects.get(user = get_user)
+                    user_teacher_to_delete.delete()
+                elif int(remove_this_user.user_level) == 3:
+                    user_student_to_delete = Student.objects.get(user = get_user)
+                    user_student_to_delete.delete()
+                elif int(remove_this_user.user_level) == 4:
+                    user_parent_to_delete = Parent.objects.get(user = get_user)
+                    user_parent_to_delete.delete()
+                remove_this_user.delete()
+                messages.success(request, f"User {get_user} and all connected data has been deleted!")
+        except User.DoesNotExist:
+            messages.error(request,f"Class {get_user} does not exist!" )
+            return redirect('hr_workplace')
+    else:
+        form = UserRemove()
+    return render(request, 'grade_system/user_remove.html', {'form': form})
+
 def logout_user(request):
     """
     allows user to logout and redirect him to the main page
@@ -222,7 +224,7 @@ def user_profile(request):
     """
     view allows logged user to see user profile with option to jumt to user update view
     """
-    user = get_user_model()
+    user = get_user_model() 
     if user:
         return render(request, 'grade_system/user_profile.html')
     return redirect('user_login')
@@ -238,7 +240,7 @@ def user_update(request):
         form = UserUpdateForm(request.POST, instance=request.user)
         if form.is_valid():
             user_form = form.save()
-            messages.success(request,f'{user_form}, has been updated!')
+            messages.success(request,'Your profile has been updated!')
             return redirect('user_profile')
         """ add some errors"""
     user = get_user_model()
@@ -252,18 +254,69 @@ def hr_user_update(request):
     """
     view for HR/admin in which  can be updated all data for selected user
     """
-    if request.method == 'POST':
-        get_user = request.POST.get('update_data_for_user')
-        user = User.objects.get(pk = get_user)
-        form = HRUserUpdateForm(request.POST)
+    if request.method == 'POST':        
+        get_user= request.POST.get('update_data_for_user')
+        update_this_user = User.objects.get(pk= get_user)
+        user_level_before = update_this_user.user_level
+        get_new_user_level = request.POST.get('user_level')
+        get_new_user_name = request.POST.get('name')
+        get_new_user_surname = request.POST.get('surname')
+        get_new_user_tel = request.POST.get('tel')
+        get_new_user_birth = request.POST.get('date_of_birth')
+        form = HRUserUpdateForm(request.POST, instance=update_this_user)
         if form.is_valid():
+            update_this_user.user_level= get_new_user_level
+            update_this_user.name= get_new_user_name
+            update_this_user.surname= get_new_user_surname
+            update_this_user.tel= get_new_user_tel
+            update_this_user.date_of_birth= get_new_user_birth
+            update_this_user.save()
             form.save()
-            return redirect()
+            """toto tu dokončiť stýlom ak sa zmenu rola tak stare najde tohto uzivatela ak bol žiak vymaže toho žiaka a presmeruje na novu rolu
+            a tam na advance registračku"""
+            if user_level_before != get_new_user_level:
+                if user_level_before == 2:
+                    get_teacher = Teacher.objects.get(user = get_user)
+                    try:
+                        get_teacher.delete()
+                        messages.success(request, f"Teacher profile for user {update_this_user.name} {update_this_user.surname} deleted continue to new register")
+                        if int(get_new_user_level)==3:
+                            return redirect("student_advance_register")
+                        elif int(get_new_user_level)==4:
+                            return redirect("parent_advance_register")
+                    except:
+                        messages.error(request, "Somthing went wrong :(")
+                elif user_level_before == 3:
+                    get_student = Student.objects.get(user = get_user)
+                    try:
+                        get_student.delete()
+                        messages.success(request, f"Student profile for user {get_user.get_full_name} deleted continue to new register")
+                        if int(get_new_user_level)==2:
+                            return redirect("teacher_advance_register")
+                        elif int(get_new_user_level)==4:
+                            return redirect("parent_advance_register")
+                    except:
+                        messages.error(request, "Somthing went wrong :(")
+                elif user_level_before == 4:
+                    get_student = Student.objects.get(user = get_user)
+                    try:
+                        get_student.delete()
+                        messages.success(request, f"Parents profile for user {get_user.get_full_name} deleted continue to new register")
+                        if int(get_new_user_level)==3:
+                            return redirect("student_advance_register")
+                        elif int(get_new_user_level)==2:
+                            return redirect("teacher_advance_register")
+                    except:
+                        messages.error(request, "Somthing went wrong :(")
+            else:
+                messages.success(request,'Your profile has been updated!')
+            return redirect("hr_workplace")
+        """ add some errors"""
     user = get_user_model()
     if user:
-        form = HRUserUpdateForm(instance=request.user)
-        return render(request, 'grade_system/user_update.html', {'form': form})
-    return redirect("hr_workplace")
+        form = HRUserUpdateForm(request.POST)
+        return render(request, 'grade_system/hr_user_update.html', {'form': form})
+    return redirect("hr_workplace")  
 
 @login_required
 def subject_update(request):
@@ -343,4 +396,23 @@ def student_advance_register(request):
             pass
     else:
         form = StudentAdvanceRegister()
+    return render(request, 'grade_system/user_register.html', { 'form': form}) 
+
+@login_required
+def parent_advance_register(request):
+    """
+    view for student registration to user with user_role student allows us to specify additional data 
+    """
+    if request.method == 'POST':
+        form = ParentAdvanceRegister(request.POST)
+        try:
+            if form.is_valid():
+                form.save()
+                messages.success(request, f"Account was created.")
+                return redirect('main_page')
+            
+        except:
+            pass
+    else:
+        form = ParentAdvanceRegister()
     return render(request, 'grade_system/user_register.html', { 'form': form}) 

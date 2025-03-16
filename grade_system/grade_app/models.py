@@ -99,7 +99,9 @@ class User(AbstractBaseUser):
 
     def __str__(self):
         return "email: {0}\n name: {1}\n surname: {2}\n telephone number: {3}\n user_id: {4}\n user role: {5}".format(self.email, self.name, self.surname, self.tel, self.user_id, self.user_level)
-
+    def get_user_level_name(self):
+        level_number, level_name = self.USER_LEVEL_CHOICES[self.user_level]
+        return level_name
     @property
     def is_staff(self):
         return self.is_admin
@@ -121,7 +123,7 @@ class Teacher(models.Model):
     subjects = subjects he can teach, classes- where he teach 
     teacher_id = unique id for teacher for better manipulation
     """
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, unique=True)
     teacher_id = models.UUIDField(primary_key= True,unique=True, default=uuid.uuid4, editable=False)
     subjects = models.ManyToManyField(Subjects,default="", verbose_name="Subjecs ")
     main_class = models.CharField(max_length=300, null=True)
@@ -144,7 +146,7 @@ class Student(models.Model):
     user is assigned as one to one field get additional informations as 
     subject student attend, his current class, after school activities and parents
     """
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, unique=True)
     student_id = models.UUIDField(primary_key=True, unique=True, default=uuid.uuid4, editable=False)
     subjects = models.ManyToManyField(Subjects,default="", verbose_name="Subjecs ")
     current_class = models.ManyToManyField(Classes, default="", verbose_name="Classes")
@@ -166,7 +168,7 @@ class Parent(models.Model):
     user model made for user with role parent 
     parent will be connected to child ( not finished yet)
     """
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, unique=True)
     child = models.CharField(max_length=300)
 
     class Meta:

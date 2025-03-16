@@ -54,42 +54,30 @@ def student_name_opions():
             choices.append((user.user_id, user.get_full_name))
     return choices
 
+def parent_name_options():
+    """
+    simple function returns parents names for choice fields
+    takes all users with user_role parent and uses user function get_full_name
+    """
+    choices= []
+    for user in User.objects.all():
+        if user.user_level == 4:
+            choices.append((user.user_id, user.get_full_name))
+    return choices
+
 """REGISTRATION FORMS"""
 class UserRegistrationForm(UserCreationForm):
     """
     form for user registration with fixed user_role to 0 [admin]
     """
-    limited_choice = [User.USER_LEVEL_CHOICES[0]]
-    user_level = forms.ChoiceField(choices=limited_choice)
-    email = forms.EmailField()
-    
-    class Meta:
-        model = User
-        fields = ["name", "surname", "tel", "email",]
-
-class TeacherRegistrationForm(UserCreationForm):
-    """
-    form for user registration with fixed user_role to 2 [teacher]
-    """
-    limited_choice = [User.USER_LEVEL_CHOICES[2]]
-    user_level = forms.ChoiceField(choices=limited_choice)
+    choices = User.USER_LEVEL_CHOICES
+    user_level = forms.ChoiceField(choices=choices)
     email = forms.EmailField()
     
     class Meta:
         model = User
         fields = ["name", "surname", "date_of_birth", "tel", "email", "user_level",]
 
-class StudentRegistrationForm(UserCreationForm):
-    """
-    form for user registration with fixed user_role to 3 [student]
-    """
-    limited_choice = [User.USER_LEVEL_CHOICES[3]]
-    user_level = forms.ChoiceField(choices=limited_choice)
-    email = forms.EmailField()
-    
-    class Meta:
-        model = User
-        fields = ["name", "surname", "date_of_birth", "tel", "email", "user_level",]
 
 """LOGIN FORM"""
 class LoginForm(forms.Form):
@@ -113,29 +101,10 @@ class SubjectAdd(forms.ModelForm):
         fields = ["subject_name", "subject_short"]
 
 
-class SubjectRemove(forms.ModelForm):
-    """
-    form that uses subject_name_choices function to pick and remove certain subject
-    """
-    subject_name = forms.ChoiceField(choices=subject_name_choices)
-
-    class Meta:
-        model = Subjects
-        fields = ["subject_name"]
-
 class ClassesAdd(forms.ModelForm):
     """
     form used for creating new classes, asking for class name
     """
-    class Meta:
-        model = Classes
-        fields = ["class_name"]
-
-class ClassesRemove(forms.ModelForm):
-    """
-    form that uses class_choices function to pick and remove certain class
-    """
-    class_name = forms.ChoiceField(choices=class_choices)
     class Meta:
         model = Classes
         fields = ["class_name"]
@@ -188,17 +157,17 @@ class HRUserUpdateForm(forms.ModelForm):
     be changed and here are no limitations of change
     we can change email and role too
     """    
-    update_data_for_user = forms.MultipleChoiceField(choices=user_name_opions)
-    user_level = forms.MultipleChoiceField(choices=User.USER_LEVEL_CHOICES)
+    update_data_for_user = forms.ChoiceField(choices=user_name_opions)
+    user_level = forms.ChoiceField(choices= User.USER_LEVEL_CHOICES)
     name = forms.CharField()
     surname = forms.CharField()
     date_of_birth = forms.DateField()
     tel = forms.CharField()
-    email = forms.EmailField()
+    
 
     class Meta:
         model = User
-        fields = ['update_data_for_user', 'user_level', 'name', 'surname', 'date_of_birth', 'tel', 'email' ]
+        fields = ['update_data_for_user', 'user_level', 'name', 'surname', 'date_of_birth', 'tel' ]
 
 """ADVANCED REGISTRATION FORMS"""
 class TeacherAdvanceRegister(forms.ModelForm):
@@ -225,5 +194,41 @@ class StudentAdvanceRegister(forms.ModelForm):
         model = Student
         fields = ["user", "subjects", "classes", "activities", "parent_1", "parent_2"]
 
-
+class ParentAdvanceRegister(forms.ModelForm):
+    """
+    this form comes automatically up after parent registration to  register Parentt model and fill up additional data for teacher
+    """
+    user = forms.ChoiceField(choices=parent_name_options)
     
+    class Meta:
+        model = Parent
+        fields = ["user", "child"]
+
+"""DELETE FORMS"""
+class SubjectRemove(forms.ModelForm):
+    """
+    form that uses subject_name_choices function to pick and remove certain subject
+    """
+    subject_name = forms.ChoiceField(choices=subject_name_choices)
+
+    class Meta:
+        model = Subjects
+        fields = ["subject_name"]
+
+class ClassesRemove(forms.ModelForm):
+    """
+    form that uses class_choices function to pick and remove certain class
+    """
+    class_name = forms.ChoiceField(choices=class_choices)
+    class Meta:
+        model = Classes
+        fields = ["class_name"]
+
+class UserRemove(forms.ModelForm):
+    """
+    form that uses user_name_choices function to pick and remove certain user and everything connected to it
+    """ 
+    user = forms.ChoiceField(choices=user_name_opions)
+    class Meta:
+        model = User
+        fields = ["user"]
