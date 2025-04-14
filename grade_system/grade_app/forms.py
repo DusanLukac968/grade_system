@@ -1,5 +1,5 @@
 from django import forms
-from .models import User, Teacher, Parent, Student, Classes, Subjects
+from .models import User, Teacher, Parent, Student, Classes, Subjects, Grades
 from django.contrib.auth.forms import UserCreationForm
 from django.db.models.query import QuerySet
 from django.contrib.auth import login, logout, authenticate, get_user_model
@@ -63,6 +63,13 @@ def parent_name_options():
     for user in User.objects.all():
         if user.user_level == 4:
             choices.append((user.user_id, user.get_full_name))
+    return choices
+
+def students_according_classes(student_class):
+    choices = []
+    for student  in Student.objects.all():
+        if student.current_class == student_class:
+            choices.append((student.student_id, student.user))
     return choices
 
 """REGISTRATION FORMS"""
@@ -157,7 +164,7 @@ class HRUserUpdateForm(forms.ModelForm):
     be changed and here are no limitations of change
     we can change email and role too
     """    
-    update_data_for_user = forms.ChoiceField(choices=user_name_opions)
+    
     user_level = forms.ChoiceField(choices= User.USER_LEVEL_CHOICES)
     name = forms.CharField()
     surname = forms.CharField()
@@ -167,7 +174,7 @@ class HRUserUpdateForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ['update_data_for_user', 'user_level', 'name', 'surname', 'date_of_birth', 'tel' ]
+        fields = ['user_level', 'name', 'surname', 'date_of_birth', 'tel' ]
 
 """ADVANCED REGISTRATION FORMS"""
 class TeacherAdvanceRegister(forms.ModelForm):
@@ -177,22 +184,22 @@ class TeacherAdvanceRegister(forms.ModelForm):
     user = forms.ChoiceField(choices=teacher_name_opions)
     subjects = forms.MultipleChoiceField(choices= subject_name_choices, widget= forms.CheckboxSelectMultiple, label='Taught Subjects:')
     classes = forms.MultipleChoiceField(choices= class_choices, widget= forms.CheckboxSelectMultiple, label='Teaching in:')
-    
+    main_class = forms.MultipleChoiceField(choices=class_choices, widget=forms.CheckboxSelectMultiple)
     class Meta:
         model = Teacher
-        fields = ["user", "subjects","main_class", "classes"]
+        fields = ["user", "subjects", "main_class", "classes"]
 
 class StudentAdvanceRegister(forms.ModelForm):
     """
     this form comes automatically up after student registration to  register Student model and fill up additional data for teacher
     """
     user = forms.ChoiceField(choices=student_name_opions)
-    subjects = forms.MultipleChoiceField(choices= subject_name_choices, widget= forms.CheckboxSelectMultiple)
-    classes = forms.MultipleChoiceField(choices= class_choices, widget= forms.CheckboxSelectMultiple)
+    subjects = forms.ModelMultipleChoiceField(queryset= Subjects.objects.all(), widget= forms.CheckboxSelectMultiple)
+    current_class = forms.ChoiceField(choices= class_choices)
 
     class Meta:
         model = Student
-        fields = ["user", "subjects", "classes", "activities", "parent_1", "parent_2"]
+        fields = ["user", "subjects", "current_class", "activities", "parent_1", "parent_2"]
 
 class ParentAdvanceRegister(forms.ModelForm):
     """
@@ -232,3 +239,16 @@ class UserRemove(forms.ModelForm):
     class Meta:
         model = User
         fields = ["user"]
+
+
+class GiveGrade(forms.ModelForm):
+
+    school_class = forms.ChoiceField(choices= class_choices)
+    student = forms.ChoiceField(choices=student_name_opions)
+    subject = forms.ChoiceField(choices= students_according_classes(class_choices))
+    grade = forms.IntegerField(min_value=1, max_value=5)
+    note = forms.CharField(max_length=300)
+
+    class Meta:
+        model = Grades
+        fields = ["school_class", "student", "subject", "grade", "note"]

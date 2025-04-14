@@ -1,7 +1,7 @@
 from typing import Any
 from django.contrib import admin
 from django import forms
-from .models import User, UserManager, Student, Teacher, Parent, Subjects, Classes 
+from .models import User, UserManager, Student, Teacher, Parent, Subjects, Classes, Grades 
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
 # Register your models here.
@@ -28,3 +28,4 @@ admin.site.register(Teacher)
 admin.site.register(Parent)
 admin.site.register(Subjects)
 admin.site.register(Classes)
+admin.site.register(Grades)

@@ -2,16 +2,16 @@
 {% load crispy_forms_tags %}
 {% block content %}
 
-<div class="content-section">
+<div class="content">
    <h1>{{ user.name }} {{user.surname}}</h1>
    <h2>{{ user.email}}</h2>
    <form method="POST" enctype="multipart/form-data">
     {% csrf_token %}
-    <fieldset class="form-group">
-      <legend class="border-bottom mb-4">Profile Info</legend>
-    <div class="form-group">
+    <fieldset class="content">
+      <legend >Profile Info</legend>
+    <div class="content">
 
-      <p>
+      <p class="content">
         <div>Status:&emsp; {{ user.get_user_level_name}}</div>
         <div>Name:&emsp; {{ user.name}}</div> 
         <div>Surname:&emsp; {{user.surname}} </div>
@@ -22,6 +22,7 @@
         
         
       </p>
+  
   </form>
   <div><a href="{% url 'user_update' %}">Actualize your data</a></div>
 </div>

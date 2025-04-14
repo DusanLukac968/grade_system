@@ -125,9 +125,9 @@ class Teacher(models.Model):
     """
     user = models.OneToOneField(User, on_delete=models.CASCADE, unique=True)
     teacher_id = models.UUIDField(primary_key= True,unique=True, default=uuid.uuid4, editable=False)
-    subjects = models.ManyToManyField(Subjects,default="", verbose_name="Subjecs ")
-    main_class = models.CharField(max_length=300, null=True)
-    classes = models.ManyToManyField(Classes, default="", verbose_name="Classes")
+    subjects = models.CharField(max_length=300, default="")
+    main_class = models.CharField(max_length=300, default="", null=True)
+    classes = models.CharField(max_length=300, default="")
     
 
     def __str__(self):
@@ -148,8 +148,8 @@ class Student(models.Model):
     """
     user = models.OneToOneField(User, on_delete=models.CASCADE, unique=True)
     student_id = models.UUIDField(primary_key=True, unique=True, default=uuid.uuid4, editable=False)
-    subjects = models.ManyToManyField(Subjects,default="", verbose_name="Subjecs ")
-    current_class = models.ManyToManyField(Classes, default="", verbose_name="Classes")
+    subjects = models.CharField(max_length=300, default="")
+    current_class = models.CharField(max_length=300, default="")
     activities = models.CharField(max_length=300)
     parent_1 = models.CharField(max_length=300)
     parent_2 = models.CharField(max_length=300)
@@ -160,7 +160,7 @@ class Student(models.Model):
 
 
     def __str__(self):
-        return "user: {0}, student_id:{1}".format(self.user, self.student_id)
+        return "user: {0}, student_id:{1}, current_class:{2}, subjects:{3}".format(self.user, self.student_id, self.current_class, self.subjects)
 
 class Parent(models.Model):
 
@@ -178,3 +178,17 @@ class Parent(models.Model):
     def __str__(self):
         return "user: {0}, child: {1}, surname: {2}".format(self.user, self.child)
 
+class Grades(models.Model):
+    
+    school_class = models.CharField(max_length=70)
+    student = models.CharField(max_length=70)
+    subject = models.CharField(max_length=70)
+    grade = models.IntegerField(default=0)
+    note = models.CharField(max_length=300)
+
+    class Meta:
+        verbose_name = "grade"
+        verbose_name_plural = "grades"
+
+    def __str__(self):
+        return "Student:{0}, Class:{1}".format(self.student, self.school_class)

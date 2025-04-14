@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1>{{user.name}}<span class="glyphicon glyphicon-erase"></span></h1>
+    
+
+    
+    <hr>
+    <form method="POST">
+        {% csrf_token %}
+
+        <button name="edit">Edit user</button>
+    </form>
+>{% endblock %}

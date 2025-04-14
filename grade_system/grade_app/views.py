@@ -6,7 +6,7 @@ from django.contrib.auth import login, logout, authenticate, get_user_model
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .models import User, Student, Teacher, Subjects, Classes, Parent
-from .forms import LoginForm, UserRegistrationForm, SubjectAdd, ClassesAdd, SubjectRemove,ClassesRemove, UserUpdateForm, TeacherAdvanceRegister, StudentAdvanceRegister, SubjectUpdateForm, ClassUpdateForm, HRUserUpdateForm, ParentAdvanceRegister, UserRemove
+from .forms import LoginForm, UserRegistrationForm, SubjectAdd, ClassesAdd, SubjectRemove,ClassesRemove, UserUpdateForm, TeacherAdvanceRegister, StudentAdvanceRegister, SubjectUpdateForm, ClassUpdateForm, HRUserUpdateForm, ParentAdvanceRegister, UserRemove, GiveGrade
 
 class MainPage(generic.ListView):
     """
@@ -185,6 +185,7 @@ def classes_remove(request):
         form = ClassesRemove()
     return render(request, 'grade_system/classes_remove.html', {'form': form})
 
+@login_required
 def user_remove(request):
     """view for deleting users"""
     if request.method == 'POST':
@@ -203,7 +204,7 @@ def user_remove(request):
                     user_parent_to_delete = Parent.objects.get(user = get_user)
                     user_parent_to_delete.delete()
                 remove_this_user.delete()
-                messages.success(request, f"User {get_user} and all connected data has been deleted!")
+                messages.success(request, f"User {remove_this_user.name} {remove_this_user.surname} and all connected data has been deleted!")
         except User.DoesNotExist:
             messages.error(request,f"Class {get_user} does not exist!" )
             return redirect('hr_workplace')
@@ -249,74 +250,118 @@ def user_update(request):
         return render(request, 'grade_system/user_update.html', {'form': form})
     return redirect("user_profile")
 
-@login_required
-def hr_user_update(request):
-    """
-    view for HR/admin in which  can be updated all data for selected user
-    """
-    if request.method == 'POST':        
-        get_user= request.POST.get('update_data_for_user')
-        update_this_user = User.objects.get(pk= get_user)
-        user_level_before = update_this_user.user_level
-        get_new_user_level = request.POST.get('user_level')
-        get_new_user_name = request.POST.get('name')
-        get_new_user_surname = request.POST.get('surname')
-        get_new_user_tel = request.POST.get('tel')
-        get_new_user_birth = request.POST.get('date_of_birth')
-        form = HRUserUpdateForm(request.POST, instance=update_this_user)
+
+class HrUserEdit(generic.edit.CreateView):
+    form_class = HRUserUpdateForm
+    template_name = 'grade_system/hr_user_update.html'
+
+    
+    def get(self, request, pk):        
+        if not request.user.user_level == 0:
+            messages.info(request, "You are not obligated to enter this page!")
+            return redirect("main_page")
+        try:
+            user = User.objects.get(pk = pk)
+        except:
+            messages.error(request, "This user doesn't exist")
+            return redirect("main_page")
+        form = self.form_class(instance = user)
+        return render(request, self.template_name, {"form": form})
+    
+    def post(self, request, pk):
+        if not request.user.user_level == 0:
+            messages.info/request, "You are not obligated to enter this page!"
+            return redirect("main_page")
+        form = self.form_class(request.POST)
+
         if form.is_valid():
-            update_this_user.user_level= get_new_user_level
-            update_this_user.name= get_new_user_name
-            update_this_user.surname= get_new_user_surname
-            update_this_user.tel= get_new_user_tel
-            update_this_user.date_of_birth= get_new_user_birth
-            update_this_user.save()
-            form.save()
-            """toto tu dokončiť stýlom ak sa zmenu rola tak stare najde tohto uzivatela ak bol žiak vymaže toho žiaka a presmeruje na novu rolu
-            a tam na advance registračku"""
-            if user_level_before != get_new_user_level:
-                if user_level_before == 2:
-                    get_teacher = Teacher.objects.get(user = get_user)
+            user_level = form.cleaned_data["user_level"]
+            name = form.cleaned_data["name"]
+            surname = form.cleaned_data["surname"]
+            date_of_birth = form.cleaned_data["date_of_birth"]
+            tel = form.cleaned_data["tel"]
+            try:
+                user = User.objects.get(pk = pk)
+                old_level = user.user_level
+            except:
+                messages.error(request, "User doesn't exist")
+                return redirect("main_page")
+            user.user_level = user_level
+            user.name = name
+            user.surname = surname
+            user.date_of_birth = date_of_birth
+            user.tel = tel
+            user.save()
+            if old_level != user.user_level:
+                if old_level == 2:
+                    get_teacher = Teacher.objects.get(user = user)
                     try:
                         get_teacher.delete()
-                        messages.success(request, f"Teacher profile for user {update_this_user.name} {update_this_user.surname} deleted continue to new register")
-                        if int(get_new_user_level)==3:
+                        messages.success(request, f"Teacher profile for user {user.name} {user.surname} deleted continue to new register")
+                        if int(user.user_level) == 3:
                             return redirect("student_advance_register")
-                        elif int(get_new_user_level)==4:
+                        elif int(user.user_level) == 4:
                             return redirect("parent_advance_register")
-                    except:
-                        messages.error(request, "Somthing went wrong :(")
-                elif user_level_before == 3:
-                    get_student = Student.objects.get(user = get_user)
+                    except Teacher.DoesNotExist:
+                        messages.error(request, "1Somthing went wrong :(")
+                elif old_level == 3:
+                    get_student = Student.objects.get(user = user)
                     try:
                         get_student.delete()
-                        messages.success(request, f"Student profile for user {get_user.get_full_name} deleted continue to new register")
-                        if int(get_new_user_level)==2:
+                        messages.success(request, f"Student profile for user {user.name} {user.surname}  deleted continue to new register")
+                        if int(user.user_level) == 2:
                             return redirect("teacher_advance_register")
-                        elif int(get_new_user_level)==4:
+                        elif int(user.user_level) == 4:
                             return redirect("parent_advance_register")
-                    except:
-                        messages.error(request, "Somthing went wrong :(")
-                elif user_level_before == 4:
-                    get_student = Student.objects.get(user = get_user)
+                    except Student.DoesNotExist:
+                        messages.error(request, f"Somthing went wrong :(")
+                elif old_level == 4:
+                    get_parent = Student.objects.get(user = user)
                     try:
-                        get_student.delete()
-                        messages.success(request, f"Parents profile for user {get_user.get_full_name} deleted continue to new register")
-                        if int(get_new_user_level)==3:
+                        get_parent.delete()
+                        messages.success(request, f"Parents profile for user {user.name} {user.surname} deleted continue to new register")
+                        if int(user.user_level)==3:
                             return redirect("student_advance_register")
-                        elif int(get_new_user_level)==2:
+                        elif int(user.user_level)==2:
                             return redirect("teacher_advance_register")
-                    except:
-                        messages.error(request, "Somthing went wrong :(")
+                    except Parent.DoesNotExist:
+                        messages.error(request, "3Somthing went wrong :(")
+                else:
+                    pass
+                    """ I have to make change in same user levels"""
+        return render(request, self.template_name, {"form": form})
+  
+class UserIndex(generic.ListView):
+    template_name = "grade_system/user_index.html"
+    context_object_name = "users"
+
+    def get_queryset(self):
+        return User.objects.all()
+    
+
+class UserProfiles(generic.DetailView):
+
+    model = User
+    template_name = "grade_system/user_details.html"
+
+    def get(self, request, pk):
+        try:
+            user = self.get_object()
+        except:
+            return redirect("user_index")
+        return render(request, self.template_name, {"user": user})
+    
+    def post(self, request, pk):
+        if request.user.user_level == 0:
+            if "edit" in request.POST:
+                return redirect("hr_user_edit", pk = self.get_object().pk)
             else:
-                messages.success(request,'Your profile has been updated!')
-            return redirect("hr_workplace")
-        """ add some errors"""
-    user = get_user_model()
-    if user:
-        form = HRUserUpdateForm(request.POST)
-        return render(request, 'grade_system/hr_user_update.html', {'form': form})
-    return redirect("hr_workplace")  
+                if not request.user.user_level == 0:
+                    messages.info(request, "You can't do that!")
+                    return redirect("user_index")
+                else:
+                    self.get_object().delete()
+        return redirect("user_index")
 
 @login_required
 def subject_update(request):
@@ -416,3 +461,18 @@ def parent_advance_register(request):
     else:
         form = ParentAdvanceRegister()
     return render(request, 'grade_system/user_register.html', { 'form': form}) 
+
+@login_required
+def give_grade(request):
+    """
+    view in which we can add grade to student
+    """
+    if request.method == 'POST':
+        form = GiveGrade(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"New subject added. ")
+            return redirect('hr_workplace')
+    else:
+        form = GiveGrade()
+    return render(request, 'grade_system/give_grade.html', { 'form': form})
